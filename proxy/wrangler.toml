@@ -1,0 +1,25 @@
+name = "expression-explain-proxy"
+main = "src/worker.ts"
+compatibility_date = "2024-10-01"
+
+# Comma-separated allowed Origins. localhost for dev, the .hf.space URL for prod.
+[vars]
+ALLOWED_ORIGIN = "http://localhost:5173,http://127.0.0.1:5173"
+
+# === Per-IP rate limiter state ===
+# In-Worker rate limiter persists timestamps and blocklist entries in KV.
+# Three windows enforced simultaneously (most restrictive blocks first):
+#   5 queries / minute    (~$0.05 worst case)
+#   20 queries / hour     (~$0.22)
+#   30 queries / day      (~$0.33)
+# Hitting the per-minute cap twice in a row -> 6h blocklist for that IP.
+#
+# One-time setup:
+#   wrangler kv:namespace create RATE_LIMIT_KV
+# Then paste the returned id into the binding below.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "19d710c7fd6441debd41598dedd56d88"
+
+# Set secrets (one-time):
+#   wrangler secret put ANTHROPIC_API_KEY
